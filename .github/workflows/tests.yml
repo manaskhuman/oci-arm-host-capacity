@@ -14,31 +14,17 @@ jobs:
     strategy:
       matrix:
         php-versions: ['8.3']
-    name: integration-tests (PHP ${{ matrix.php-versions }})
+    name: "integration-tests"
     steps:
       - uses: actions/checkout@v1
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
-      - name: Validate composer.json and composer.lock
-        run: composer validate
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ matrix.dependencies }}-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ matrix.dependencies }}-
       - name: Install dependencies
-        run: |
-          composer update --prefer-dist --no-progress
+        run: composer update --prefer-dist --no-progress
       - name: Run test suite
-        run: |
-          vendor/bin/phpunit --color tests/
+        run: vendor/bin/phpunit --color tests/
         env:
           OCI_REGION: ${{ secrets.OCI_REGION }}
           OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
@@ -53,31 +39,3 @@ jobs:
           OCI_SHAPE: ${{ secrets.OCI_SHAPE }}
           OCI_MAX_INSTANCES: ${{ secrets.OCI_MAX_INSTANCES }}
           OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
-          TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
-          TELEGRAM_BOT_API_KEY: ${{ secrets.TELEGRAM_BOT_API_KEY }}
-```
-
----
-
-## How to Replace in GitHub:
-```
-Code tab
-→ .github/workflows/test.yml
-→ Click pencil ✏️ icon
-→ Select ALL existing text (Ctrl+A)
-→ Delete it
-→ Paste above content
-→ Click "Commit changes"
-→ Commit directly to main
-```
-
----
-
-## Then Add These Missing Secrets:
-```
-OCI_AVAILABILITY_DOMAIN  =  RXYe:AP-MUMBAI-1-AD-1
-OCI_OCPUS                =  4
-OCI_MEMORY_IN_GBS        =  24
-OCI_SHAPE                =  VM.Standard.A1.Flex
-OCI_MAX_INSTANCES        =  1
-OCI_PRIVATE_KEY_FILENAME =  (same .pem contents as OCI_PRIVATE_KEY)
