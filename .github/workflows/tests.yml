@@ -1,5 +1,4 @@
 name: Tests
-
 on:
   push:
     branches:
@@ -7,10 +6,8 @@ on:
   pull_request:
     branches:
       - main
-
-#  schedule:
-#    - cron: '*/5 * * * *'
-
+  schedule:
+    - cron: '*/5 * * * *'
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -26,7 +23,6 @@ jobs:
           php-version: ${{ matrix.php-versions }}
       - name: Validate composer.json and composer.lock
         run: composer validate
-
       - name: Get Composer Cache Directory
         id: composer-cache
         run: |
@@ -37,7 +33,6 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ matrix.dependencies }}-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ matrix.dependencies }}-
-
       - name: Install dependencies
         run: |
           composer update --prefer-dist --no-progress
@@ -60,4 +55,29 @@ jobs:
           OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
           TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
           TELEGRAM_BOT_API_KEY: ${{ secrets.TELEGRAM_BOT_API_KEY }}
+```
 
+---
+
+## How to Replace in GitHub:
+```
+Code tab
+→ .github/workflows/test.yml
+→ Click pencil ✏️ icon
+→ Select ALL existing text (Ctrl+A)
+→ Delete it
+→ Paste above content
+→ Click "Commit changes"
+→ Commit directly to main
+```
+
+---
+
+## Then Add These Missing Secrets:
+```
+OCI_AVAILABILITY_DOMAIN  =  RXYe:AP-MUMBAI-1-AD-1
+OCI_OCPUS                =  4
+OCI_MEMORY_IN_GBS        =  24
+OCI_SHAPE                =  VM.Standard.A1.Flex
+OCI_MAX_INSTANCES        =  1
+OCI_PRIVATE_KEY_FILENAME =  (same .pem contents as OCI_PRIVATE_KEY)
