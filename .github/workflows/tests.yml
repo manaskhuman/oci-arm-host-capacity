@@ -1,34 +1,25 @@
-name: Tests
+name: Create OCI Instance
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   schedule:
     - cron: '*/5 * * * *'
+  workflow_dispatch:
 jobs:
-  tests:
+  create:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        php-versions: ['8.3']
-    name: "integration-tests"
     steps:
       - uses: actions/checkout@v1
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-versions }}
+          php-version: '8.3'
       - name: Create OCI private key file
         run: |
           echo "${{ secrets.OCI_PRIVATE_KEY }}" > /home/runner/oci_key.pem
           chmod 600 /home/runner/oci_key.pem
       - name: Install dependencies
         run: composer update --prefer-dist --no-progress
-      - name: Run test suite
-        run: vendor/bin/phpunit --color tests/
+      - name: Try to create instance
+        run: php run.php
         env:
           OCI_REGION: ${{ secrets.OCI_REGION }}
           OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
@@ -43,3 +34,24 @@ jobs:
           OCI_SHAPE: ${{ secrets.OCI_SHAPE }}
           OCI_MAX_INSTANCES: ${{ secrets.OCI_MAX_INSTANCES }}
           OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+```
+
+---
+
+## Key Differences:
+| Old | New |
+|---|---|
+| Runs PHPUnit tests | Runs `php run.php` directly |
+| Tests code quality | Actually tries to create VM |
+| Always fails without OCI mock | Retries every 5 mins for real |
+| `workflow_dispatch` missing | ✅ Can trigger manually too |
+
+---
+
+## After Committing:
+```
+Actions tab
+→ Click "Create OCI Instance"
+→ Click "Run workflow" to test manually first
+→ Watch logs — should show "Out of capacity" (good!)
+  meaning it's actually trying!
