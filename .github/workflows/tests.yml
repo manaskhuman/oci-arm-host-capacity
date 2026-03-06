@@ -2,7 +2,7 @@ name: Create OCI Instance
 on:
   schedule:
     - cron: '*/5 * * * *'
-  workflow_dispatch:
+  workflow_dispatch: {}
 jobs:
   create:
     runs-on: ubuntu-latest
@@ -12,13 +12,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-      - name: Create OCI private key file
+      - name: Write private key
         run: |
           echo "${{ secrets.OCI_PRIVATE_KEY }}" > /home/runner/oci_key.pem
           chmod 600 /home/runner/oci_key.pem
       - name: Install dependencies
         run: composer update --prefer-dist --no-progress
-      - name: Try to create instance
+      - name: Run
         run: php run.php
         env:
           OCI_REGION: ${{ secrets.OCI_REGION }}
@@ -34,24 +34,3 @@ jobs:
           OCI_SHAPE: ${{ secrets.OCI_SHAPE }}
           OCI_MAX_INSTANCES: ${{ secrets.OCI_MAX_INSTANCES }}
           OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
-```
-
----
-
-## Key Differences:
-| Old | New |
-|---|---|
-| Runs PHPUnit tests | Runs `php run.php` directly |
-| Tests code quality | Actually tries to create VM |
-| Always fails without OCI mock | Retries every 5 mins for real |
-| `workflow_dispatch` missing | ✅ Can trigger manually too |
-
----
-
-## After Committing:
-```
-Actions tab
-→ Click "Create OCI Instance"
-→ Click "Run workflow" to test manually first
-→ Watch logs — should show "Out of capacity" (good!)
-  meaning it's actually trying!
