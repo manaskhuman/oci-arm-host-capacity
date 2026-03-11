@@ -34,3 +34,9 @@ jobs:
           OCI_SHAPE: ${{ secrets.OCI_SHAPE }}
           OCI_MAX_INSTANCES: ${{ secrets.OCI_MAX_INSTANCES }}
           OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+      - name: Notify Telegram on Success
+        if: success()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot7894445067:AAEVJQ8yuV7MvYDRzMS6o2v6YPfATIZEQJI/sendMessage" \
+            -d "chat_id=5141779026" \
+            -d "text=🎉 A1 Flex VM Created! 4 OCPU / 24GB RAM. Check OCI Console for IP: https://cloud.oracle.com/compute/instances"
