@@ -1,25 +1,13 @@
-name: Create OCI Instance
-on:
-  schedule:
-    - cron: '*/10 * * * *'
-  workflow_dispatch: {}
-jobs:
-  create:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - name: Install PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-      - name: Install dependencies
-        run: composer update --prefer-dist --no-progress
-      - name: Write PEM key to file
+- name: Run script
+        id: run_script
         run: |
-          echo "${{ secrets.OCI_PRIVATE_KEY }}" > /tmp/oci_api_key.pem
-          chmod 600 /tmp/oci_api_key.pem
-      - name: Run script
-        run: php index.php
+          OUTPUT=$(php index.php)
+          echo "$OUTPUT"
+          if echo "$OUTPUT" | grep -q "lifecycleState"; then
+            echo "CREATED=true" >> $GITHUB_OUTPUT
+          else
+            echo "CREATED=false" >> $GITHUB_OUTPUT
+          fi
         env:
           OCI_REGION: ${{ secrets.OCI_REGION }}
           OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
@@ -35,7 +23,7 @@ jobs:
           OCI_MAX_INSTANCES: ${{ secrets.OCI_MAX_INSTANCES }}
           OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
       - name: Notify Telegram on Success
-        if: success()
+        if: steps.run_script.outputs.CREATED == 'true'
         run: |
           curl -s -X POST "https://api.telegram.org/bot7894445067:AAEVJQ8yuV7MvYDRzMS6o2v6YPfATIZEQJI/sendMessage" \
             -d "chat_id=5141779026" \
